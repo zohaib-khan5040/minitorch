@@ -62,10 +62,7 @@ def sigmoid(x: float) -> float:
 
     for stability.
     """
-    if x >= 0:
-        return 1.0 / (1.0 + math.exp(-x))
-    else:
-        return math.exp(x) / (1.0 + math.exp(x))
+    return 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -74,7 +71,7 @@ def relu(x: float) -> float:
 
     (See https://en.wikipedia.org/wiki/Rectifier_(neural_networks) .)
     """
-    return x if x > 0 else 0
+    return (x>0) * x
 
 
 EPS = 1e-6
@@ -92,7 +89,7 @@ def exp(x: float) -> float:
 
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
-    return d * 1/(x + EPS)
+    return d * 1/(x)
 
 
 def inv(x: float) -> float:
@@ -102,7 +99,7 @@ def inv(x: float) -> float:
 
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
-    return d * -1/(x**2)
+    return -d/(x**2)
 
 
 def relu_back(x: float, d: float) -> float:
@@ -131,10 +128,10 @@ def map(fn: Callable[[float], float]) -> Callable[[Iterable[float]], Iterable[fl
     """
 
     # Make a new function that applies this function to an iterable
-    def apply(ls: Iterable[float]) -> Iterable[float]:
+    def apply_fn(ls: Iterable[float]) -> Iterable[float]:
         return [fn(x) for x in ls]
     
-    return apply
+    return apply_fn
 
 
 def negList(ls: Iterable[float]) -> Iterable[float]:
