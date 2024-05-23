@@ -44,8 +44,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
 
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError('Need to implement for Task 2.1')
-
+    return sum([index[i] * strides[i] for i in range(len(index))])
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     """
@@ -61,8 +60,12 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError('Need to implement for Task 2.1')
+    for i, s in enumerate(shape):
+        product = prod(shape[i:])
+        div = product // s
+        out_index[i] = ordinal // div
 
+        ordinal -= out_index[i] * div
 
 def broadcast_index(
     big_index: Index, big_shape: Shape, shape: Shape, out_index: OutIndex
@@ -84,7 +87,8 @@ def broadcast_index(
         None
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError('Need to implement for Task 2.2')
+    for i in range(len(shape)):
+        out_index[i] = big_index[len(big_shape) - len(shape) + i] if shape[i] > 1 else 0
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -102,7 +106,22 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError('Need to implement for Task 2.2')
+    # Following the three rules
+
+    # 1. If the number of dimensions of the two shapes is not equal, prepend the smaller shape with 1s until they are the same size.
+    if len(shape1) < len(shape2):
+        shape1 = (1,) * (len(shape2) - len(shape1)) + shape1
+
+    if len(shape2) < len(shape1):
+        shape2 = (1,) * (len(shape1) - len(shape2)) + shape2
+
+    # 2. The dimensions are compatible if they are equal, or if one of them is 1.
+    for i in range(len(shape1)):
+        if shape1[i] != shape2[i] and shape1[i] != 1 and shape2[i] != 1:
+            raise IndexingError(f"Shapes {shape1} and {shape2} are incompatible.")
+        
+    # 3. The output shape is the maximum of each dimension of the input shapes.
+    return tuple([max(shape1[i], shape2[i]) for i in range(len(shape1))])
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -228,7 +247,10 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
-        raise NotImplementedError('Need to implement for Task 2.1')
+        # Just change up the strides with the new order
+        new_strides = [self._strides[i] for i in order]
+        new_shape = [self._shape[i] for i in order]
+        return TensorData(self._storage, tuple(new_shape), tuple(new_strides))
 
     def to_string(self) -> str:
         s = ""

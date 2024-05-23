@@ -71,9 +71,11 @@ class Scalar:
         global _var_count
         _var_count += 1
         self.unique_id = _var_count
+
         self.data = float(v)
         self.history = back
         self.derivative = None
+        
         if name is not None:
             self.name = name
         else:

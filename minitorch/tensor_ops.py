@@ -265,7 +265,25 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        
+        # Create empty arrays to store the indices of the tensors
+        # Only created because the helper functions act on a reference passed
+        in_index = np.zeros(len(in_shape), dtype=int)
+        out_index = np.zeros(len(out_shape), dtype=int)
+
+        # Run a loop to enumerate over all of the elements in the output tensor
+        for i in range(len(out)):
+
+            # Find the corresponding index in out
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+
+            # Find the corresponding index in in
+            x = in_storage[index_to_position(in_index, in_strides)]
+            index = index_to_position(out_index, out_strides) 
+
+            # Apply the function to the right region
+            out[index] = fn(x)
 
     return _map
 
@@ -310,7 +328,30 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        
+        # Create empty arrays to store the indices of the tensors
+        # Only created because the helper functions act on a reference passed
+        out_index = np.zeros(len(out_shape), dtype=int)
+        a_in = np.zeros(len(a_shape), dtype=int)
+        b_in = np.zeros(len(b_shape), dtype=int)
+
+        # Run a loop to enumerate all of the elements in the output tensor
+        for i in range(len(out)):
+            
+            # Find the corresponding index in out
+            to_index(i, out_shape, out_index)
+            index = index_to_position(out_index, out_strides)
+
+            # Find the corresponding index in a
+            broadcast_index(out_index, out_shape, a_shape, a_in)
+            a = a_storage[index_to_position(a_in, a_strides)]
+
+            # Find the corresponding index in b
+            broadcast_index(out_index, out_shape, b_shape, b_in)
+            b = b_storage[index_to_position(b_in, b_strides)]
+
+            # Apply the function to the corresponding part of the tensors
+            out[index] = fn(a, b)
 
     return _zip
 
@@ -341,7 +382,26 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        
+        # Create empty arrays to store the indices of the tensors
+        # Only created because the helper functions act on a reference passed
+        # Note that the reduce_dim is turned to size 1
+        out_index = np.zeros(len(out_shape), dtype=int)
+
+        for i in range(len(out)):
+
+            # Get the corresponding index in out
+            to_index(i, out_shape, out_index)
+            index = index_to_position(out_index, out_strides)
+
+            # Run an inner loop to reduce the tensor
+            # Note the reduction is done along the reduce_dim axis
+            a_index = out_index.copy()
+            out[index] = a_storage[index_to_position(a_index, a_strides)]
+            for j in range(a_shape[reduce_dim]):
+                a_index[reduce_dim] = j
+                out[index] = fn(out[index], a_storage[index_to_position(a_index, a_strides)])
+
 
     return _reduce
 

@@ -94,21 +94,29 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     # TODO: Implement for Task 1.4.
 
     ordered_vars: Iterable[Variable] = topological_sort(variable)
+
     # Record the derivative of each variable
     derivatives = {var.unique_id: 0 for var in ordered_vars}
     derivatives[variable.unique_id] = deriv
 
     for var in ordered_vars:
+
+        # If this node is a leaf (i.e. a variable created by the user, not a constant all the way to the left) then accumulate the derivative
+        # accumulate_derivative is a method of the Variable class that adds a value to the derivative accumulated on this variable
+        # The derivatives dictionary is what we have to actually compute in this function
         if var.is_leaf():
             var.accumulate_derivative(derivatives[var.unique_id])
+        
         else:
+            # If this node is not a leaf, then we need to calculate the derivative of this node with respect to its parents
+            # chain_rule lets us iterate through the parents of this node and calculate the derivative of this node with respect to each parent
             for parent_var, deriv in var.chain_rule(derivatives[var.unique_id]):
+                # Don't care if it's a parent
                 if parent_var.is_constant():
                     continue
+                # Accumulate the derivative of the parent node
                 if parent_var.unique_id in derivatives:
                     derivatives[parent_var.unique_id] += deriv
-                else:
-                    derivatives[parent_var.unique_id] = deriv
 
 
 @dataclass
